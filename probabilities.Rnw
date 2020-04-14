@@ -1,0 +1,186 @@
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage[portrait]{geometry}
+\geometry{verbose,tmargin=1cm,bmargin=1cm,lmargin=3cm,rmargin=3cm}
+\setlength{\parskip}{0in}
+\setlength{\parindent}{0pt}
+\usepackage{url}
+\usepackage[unicode=true,pdfusetitle,
+ bookmarks=true,bookmarksnumbered=false,bookmarksopen=false,
+ breaklinks=false,pdfborder={3 1 1},backref=false,colorlinks=false]
+ {hyperref}
+
+
+
+\begin{document}
+
+\SweaveOpts{concordance=TRUE}
+
+\title{Probabilities of significance}
+
+\author{Mc}
+\maketitle
+\section*{Reference}
+Based on Meetings note
+ 
+(\href{https://docs.google.com/document/d/1zhUdzu9HjuZ8tqvLVKh6QoqIphHgWVrIHosbvRAGGvs/edit}{ "Meetings for Significance \& Accuracy"}, 24-02-06 
+
+\section*{What's new}
+
+We plot the probabilities of an indicator to be significant as follows:
+\begin{itemize}
+\item [{1}] 
+\begin{itemize}
+\item [{a.}] Either continuous or categorical are significant 
+\item [{b.}] Continuous significant (ignoring categorical) 
+\item [{c.}] Categorical significant (ignoring continuous) 
+\end{itemize}
+\item [{2}] 
+\begin{itemize}
+\item [{a.}] Only continuous significant 
+\item [{b.}] Only categorical significant 
+\item [{c.}] Both continuous and categorical are significant 
+\item [{d.}] Neither continuous and categorical are significant 
+ 
+\end{itemize}
+ 
+\end{itemize}
+
+\section*{Introduction}
+In simulations we checked the propability of an indicator (continuous or media-split) as the probability (frequency of runs) of being significant when it should be (latent effect size is greater than zero) over the probability of being significant when it should be not.
+\section*{Setup}
+\subsection*{Model}
+Two continuous latent variables (\(\eta\) and \(\xi\) ) are created with N cases, sharing a correlation equal to \(\rho\). A measure \(x\) of \(\xi\) is created with reliability \(rel\), and then  is dichotomized accordingly to \(p\) \(1-p\) into \(c\). The correlations \( r_pe=r(\eta,x) \)  and \( r_pb=r(\eta,c) \) are computed, their p-value and significance (at .05) is recorded.
+\subsection*{Design}
+\(\rho=(0,.1,.2,.3,.4,.5,.6,.7) \)
+\(rel=(0.3, 0.4 ,0.5, 0.6, 0.7 ,0.8 0.9) \) 
+
+\subsection*{Propabilities as a functions of \(\rho\)}
+
+The computation follows Jamie's computation at the last meeting. The probabilities are the following: \(f_0\) is the number of times the indicator was significant when the null hypothesis was true, \(f_1\) is the probability of being the only one significant for a given \(\rho)>0\). The probability \(P\) is \(P= f_1 \over (f_1+f_0 \))  
+
+
+<<t1, results=verbatim, message=FALSE,echo=FALSE,cache=TRUE,cache.vars=TRUE,cache.path=TRUE >>=
+setwd("~/Skinner/Papers/Working/NoSplitting/Significance/newSoft")
+load('simdata3.rda')
+load('experiment3.rda')
+myexper<-info[[1]]
+library(simCity)
+
+result<-simdata$sigpe+10*simdata$sigpb
+s1<-aggregate(simdata$x,list(simdata$sigpe,simdata$sigpb,simdata$rho),sum)
+ss<-sum(simdata$x)
+s1$prop<-s1$x/(ss*2)
+names(s1)<-c("conti.sig","split.sig","rho","freq","prop")
+cc<-s1[s1[,1]==1 | s1[,2]==1,]
+cc<-aggregate(cc,list(cc[,3]),sum)
+bs<-cc[1,5]
+cat('Number of times Either Continuos or Categorical was significant under the null hypothesis')
+bs
+res1<-cc[,5]/(cc[,5]+bs)
+either<-res1[-1]
+
+###################
+
+cc<-s1[s1[,1]==1,]
+cc<-aggregate(cc,list(cc[,3]),sum)
+
+bs<-cc[1,5]
+cat('Number of times Continuous was significant under the null hypothesis')
+bs
+cat('P of  Continuos  significant under true hypotheses')
+res1<-cc[,5]/(cc[,5]+bs)
+continuous=res1[-1]
+###########################
+rcc<-s1[s1[,2]==1,]
+cc<-s1[s1[,2]==1,]
+cc<-aggregate(cc,list(cc[,3]),sum)
+bs<-cc[1,5]
+cat('Number of times Categorical was significant under the null hypothesis')
+bs
+cat('P of  categorical  significant under true hypotheses')
+res1<-cc[,5]/(cc[,5]+bs)
+categorical=res1[-1]
+
+
+rho=c(.1,.2,.3,.4,.5,.6,.7)
+
+comp=cbind(rho,continuous,categorical,either)
+as.data.frame(comp)
+
+@
+
+
+\subsubsection*{Figure 1: Probability of being significance}
+
+<<t2,results=verbatim, fig=TRUE, message=FALSE,echo=FALSE,cache=TRUE,cache.vars=TRUE,cache.path=TRUE >>=
+#as.data.frame(comp)
+cdata<-as.data.frame(comp)
+plot(rho,continuous,data=comp,type="b",ylim=c(.5,1),pch=21,ylab='Probability')
+points(rho,categorical,type="b",pch=17)
+points(rho,either,type="b",pch=15)
+
+legend(.50,.75,c("Contin.","Catego.","Either"),pch=c(21,17,15),pt.bg=c(0,1),title='Method',bty='n',lwd=c(1,1))
+
+@
+
+
+
+<<t3, results=verbatim, message=FALSE,echo=FALSE,cache=TRUE,cache.vars=TRUE,cache.path=TRUE >>=
+setwd("~/Skinner/Papers/Working/NoSplitting/Significance/newSoft")
+load('simdata3.rda')
+load('experiment3.rda')
+myexper<-info[[1]]
+library(simCity)
+
+result<-simdata$sigpe+10*simdata$sigpb
+s1<-aggregate(simdata$x,list(simdata$sigpe,simdata$sigpb,simdata$rho),sum)
+ss<-sum(simdata$x)
+s1$prop<-s1$x/(ss*2)
+names(s1)<-c("conti.sig","split.sig","rho","freq","prop")
+
+cc<-s1[s1[,1]==1 & s1[,2]==1,]
+bs<-cc[1,4]
+cat('Number of times both Continuos and Categorical were significant under the null hypothesis')
+bs
+res1<-cc[,4]/(cc[,4]+bs)
+both=res1[-1]
+
+
+cc<-s1[s1[,1]==1 & s1[,2]==0,]
+bs<-cc[1,4]
+cat('Number of times only Continuos was significant under the null hypothesis')
+bs
+res1<-cc[,4]/(cc[,4]+bs)
+continuous=res1[-1]
+
+cc<-s1[s1[,1]==0 & s1[,2]==1,]
+bs<-cc[1,4]
+cat('Number of times only Categorical was significant under the null hypothesis')
+bs
+cat('Odds of only Continuos  significant under true hypotheses')
+res1<-cc[,4]/(cc[,4]+bs)
+categorical=res1[-1]
+rho<-cc[,3]
+rho<-rho[-1]
+comp=cbind(rho,continuous,categorical,both)
+as.data.frame(comp)
+
+@
+
+\subsubsection*{Figure 2: Probs. of being significant}
+
+<<t4,results=verbatim, fig=TRUE, message=FALSE,echo=FALSE,cache=TRUE,cache.vars=TRUE,cache.path=TRUE >>=
+#as.data.frame(comp)
+cdata<-as.data.frame(comp)
+plot(rho,continuous,data=comp,type="b",ylim=c(.2,1),pch=21,ylab='Probability')
+points(rho,categorical,type="b",pch=17)
+points(rho,both,type="b",pch=15)
+
+legend(.50,.7,c("Only Contin.","Only Catego.", "Both"),pch=c(21,17,15),pt.bg=c(0,1),title='Method',bty='n',lwd=c(1,1))
+
+@
+
+
+
+\end{document}

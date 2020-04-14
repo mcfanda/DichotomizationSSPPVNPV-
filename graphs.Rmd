@@ -1,0 +1,325 @@
+```{r echo=FALSE, cache.lazy=FALSE}
+echocode=F
+scriptname="graphs.Rmd"
+setwd("~/Skinner/Papers/Working/NoSplitting/Significance/newSoft")
+load('simdata.rda')
+load('experiment1.rda')
+myexper<-info[[1]]
+library(simCity)
+rho<-unlist(coefs.unique(myexper)[1])
+rel<-unlist(coefs.unique(myexper)[2])
+
+```
+
+Simulation for Significance of splitting (Jan. 2014)
+========================================================
+
+Based on Jamie's notes
+[go to pdf ](https://www.dropbox.com/s/jtw5z4uyrxj5rcg/Notes%202012-12-21.pdf)
+
+
+## Setup
+### Model
+Two continuous latent variables (\(\eta\) and \(\xi\) ) are created with <b>N</b> cases, sharing a correlation equal to \(\rho\). A measure \(x\) of \(\xi\) is created with reliability \(rel\), and then  is dichotomized accordingly to \(p\) \(1-p\) into \(c\). The correlations \( r_pe=r(\eta,x) \)  and \( r_pb=r(\eta,c) \) are computed, their p-value and significance (at .05) is recorded.
+### Design
+
+_N_={`r myexper$N `}
+<br>
+_rho_={`r rho[1] `}
+<br>
+_rel_={`r rel `}
+
+each combination of _N_ and _rho_ is repeated 100 times.
+
+
+#### Proportions of samples where both correlations are significant (_both_), only the .biserial (_Split_), and only the Pearson (_continuos_) by reliability 
+
+
+```{r fig.width=8, fig.height=6, echo=echocode,warning=echocode, results='hide', comment=''}
+md<-function(rho,p1,p2) {
+s0<-simdata[simdata$rho==rho,]
+sums<-sum(s0$x)
+ss1<-aggregate(s0$x,list(s0$rel),sum)
+s1<-aggregate(s0,list(s0$rel,s0$sigpe,s0$sigpb),sum)
+s2<-s1[(s1$Group.2==p1 & s1$Group.3==p2),]
+s2$prop<-s2$x/ss1[,2]
+s2
+}
+dat<-md(0,1,0)
+plot(dat$prop~dat$Group.1,ylab='prop. of runs',xlab='rel',pch=21,type='b',ylim=c(0,.05))
+dat<-md(0,0,1)
+points(dat$prop~dat$Group.1,pch=25,bg=0,type='b')
+dat<-md(0,1,1)
+points(dat$prop~dat$Group.1,pch=19,bg=0,type='b')
+legend('topright',inset=c(-.05,-.1),
+       c('Continuous.','Split','Both'),
+       pch=c(21,25,19),
+       xpd=T,
+       pt.bg=c(0,1),
+       title='Indicator',
+      box.col = "black",bg = "white")
+
+```
+
+
+#### Proportion of significant results by N broken down by indicator type
+
+
+```{r fig.width=8, fig.height=6, echo=echocode,warning=echocode, results='hide', comment=''}
+
+md<-function(rho,p1,p2) {
+s0<-simdata[simdata$rho==rho,]
+sums<-sum(s0$x)
+ss1<-aggregate(s0$x,list(s0$ncase),sum)
+s1<-aggregate(s0,list(s0$ncase,s0$sigpe,s0$sigpb),sum)
+s2<-s1[(s1$Group.2==p1 & s1$Group.3==p2),]
+s2$prop<-s2$x/ss1[,2]
+s2
+}
+dat<-md(0,1,0)
+plot(dat$prop~dat$Group.1,ylab='prop. of runs',xlab='N',pch=21,type='b',ylim=c(0,.05))
+dat<-md(0,0,1)
+points(dat$prop~dat$Group.1,pch=25,bg=0,type='b')
+dat<-md(0,1,1)
+points(dat$prop~dat$Group.1,pch=19,bg=0,type='b')
+
+
+legend('topright',inset=c(-.05,-.1),
+       c('Continuous.','Split','Both'),
+       pch=c(21,25,19),
+       xpd=T,
+       pt.bg=c(0,1),
+       title='Indicator',
+      box.col = "black",bg = "white")
+
+
+```
+
+
+#### Mean abs distance between Pearson correlation and \(\rho\) results by reliability broken down by indicator significance
+
+<i>in this case mean distance=effect size in terms of r</i>
+
+```{r fig.width=8, fig.height=6, echo=echocode,warning=echocode, results='hide', comment=''}
+md<-function(rho,p1,p2) {
+s0<-simdata[simdata$rho==rho,]
+sums<-sum(s0$x)
+ss1<-aggregate(s0$x,list(s0$rel),mean)
+s1<-aggregate(s0,list(s0$rel,s0$sigpe,s0$sigpb),mean)
+s2<-s1[(s1$Group.2==p1 & s1$Group.3==p2),]
+s2$prop<-s2$x/ss1[,2]
+s2
+}
+dat<-md(0,1,0)
+plot(abs(dat$rpe.cor)~dat$Group.1,ylab='delta',xlab='rel',pch=21,type='b',ylim=c(-.2,.2))
+dat<-md(0,0,1)
+points(abs(dat$rpe.cor)~dat$Group.1,pch=25,bg=0,type='b')
+dat<-md(0,1,1)
+points(abs(dat$rpe.cor)~dat$Group.1,pch=19,bg=0,type='b')
+
+
+legend('topright',inset=c(-.05,-.1),
+       c('Continuous.','Split','Both'),
+       pch=c(21,25,19),
+       xpd=T,
+       pt.bg=c(0,0,1),
+       title='Which significant?',
+      box.col = "black",bg = "white")
+
+```
+
+#### Mean abs distance between .biserial correlation and \(\rho\) results by reliability broken down by indicator significance
+
+<i>in this case mean distance=effect size in terms of r</i>
+
+```{r fig.width=8, fig.height=6, echo=echocode,warning=echocode, results='hide', comment=''}
+md<-function(rho,p1,p2) {
+s0<-simdata[simdata$rho==rho,]
+sums<-sum(s0$x)
+ss1<-aggregate(s0$x,list(s0$rel),mean)
+s1<-aggregate(s0,list(s0$rel,s0$sigpe,s0$sigpb),mean)
+s2<-s1[(s1$Group.2==p1 & s1$Group.3==p2),]
+s2$prop<-s2$x/ss1[,2]
+s2
+}
+dat<-md(0,1,0)
+plot(abs(dat$rpe.cor)~dat$Group.1,ylab='delta',xlab='rel',pch=21,type='b',ylim=c(-.2,.2))
+
+dat<-md(0,0,1)
+points(abs(dat$rpb.cor)~dat$Group.1,pch=25,bg=0,type='b')
+dat<-md(0,1,1)
+points(abs(dat$rpb.cor)~dat$Group.1,pch=19,bg=0,type='b')
+
+legend('topright',inset=c(-.05,-.1),
+       c('Continuous.','Split','Both'),
+       pch=c(21,25,19),
+       xpd=T,
+       pt.bg=c(0,0,1),
+       title='Which significant?',
+      box.col = "black",bg = "white")
+
+```
+
+############## not null hypothesis #############
+
+### Design
+
+_N_={`r myexper$N `}
+<br>
+_rho_={`r rho[2] `}
+<br>
+_rel_={`r rel `}
+
+each combination of _N_ and _rho_ is repeated 100 times.
+
+
+#### Proportions of samples where both correlations are significant (_both_), only the .biserial (_Split_), and only the Pearson (_continuos_) by reliability 
+
+
+```{r fig.width=8, fig.height=6, echo=echocode,warning=echocode, results='hide', comment=''}
+md<-function(rho,p1,p2) {
+s0<-simdata[simdata$rho==rho,]
+sums<-sum(s0$x)
+ss1<-aggregate(s0$x,list(s0$rel),sum)
+s1<-aggregate(s0,list(s0$rel,s0$sigpe,s0$sigpb),sum)
+s2<-s1[(s1$Group.2==p1 & s1$Group.3==p2),]
+s2$prop<-s2$x/ss1[,2]
+s2
+}
+dat<-md(.5,1,0)
+plot(dat$prop~dat$Group.1,ylab='prop. of runs',xlab='rel',pch=21,type='b',ylim=c(0,1))
+dat<-md(.5,0,1)
+points(dat$prop~dat$Group.1,pch=25,bg=0,type='b')
+dat<-md(.5,1,1)
+points(dat$prop~dat$Group.1,pch=19,bg=0,type='b')
+legend('topright',inset=c(-.05,-.1),
+       c('Continuous.','Split','Both'),
+       pch=c(21,25,19),
+       xpd=T,
+       pt.bg=c(0,0,1),
+       title='Indicator',
+      box.col = "black",bg = "white")
+
+```
+
+
+#### Proportion of significant results by N broken down by which indicator is significant
+
+
+```{r fig.width=8, fig.height=6, echo=echocode,warning=echocode, results='hide', comment=''}
+
+md<-function(rho,p1,p2) {
+s0<-simdata[simdata$rho==rho,]
+sums<-sum(s0$x)
+ss1<-aggregate(s0$x,list(s0$ncase),sum)
+s1<-aggregate(s0,list(s0$ncase,s0$sigpe,s0$sigpb),sum)
+s2<-s1[(s1$Group.2==p1 & s1$Group.3==p2),]
+s2$prop<-s2$x/ss1[,2]
+s2
+}
+dat<-md(.5,1,0)
+plot(dat$prop~dat$Group.1,ylab='prop. of runs',xlab='rel',pch=21,type='b',ylim=c(0,1))
+dat<-md(.5,0,1)
+points(dat$prop~dat$Group.1,pch=25,bg=0,type='b')
+dat<-md(.5,1,1)
+points(dat$prop~dat$Group.1,pch=19,bg=0,type='b')
+
+legend('topright',inset=c(-.05,-.1),
+       c('Continuous.','Split','Both'),
+       pch=c(21,25,19),
+       xpd=T,
+       pt.bg=c(0,1),
+       title='Indicator',
+      box.col = "black",bg = "white")
+
+
+```
+
+
+#### Mean abs distance between Pearson correlation and \(\rho\) results by reliability broken down by indicator significance
+
+
+```{r fig.width=8, fig.height=6, echo=echocode,warning=echocode, results='hide', comment=''}
+rho<-.5
+
+md<-function(rho,p1,p2) {
+s0<-simdata[simdata$rho==rho,]
+sums<-sum(s0$x)
+ss1<-aggregate(s0$x,list(s0$rel),mean)
+s1<-aggregate(s0,list(s0$rel,s0$sigpe,s0$sigpb),mean)
+s2<-s1[(s1$Group.2==p1 & s1$Group.3==p2),]
+s2$prop<-s2$x/ss1[,2]
+s2
+}
+dat<-md(.5,1,0)
+plot(abs(dat$rpe.cor-rho)~dat$Group.1,ylab='delta',xlab='N',pch=21,type='b',ylim=c(0,.5))
+dat<-md(.5,0,1)
+points(abs(dat$rpe.cor-rho)~dat$Group.1,pch=25,bg=0,type='b')
+dat<-md(.5,1,1)
+points(abs(dat$rpe.cor-rho)~dat$Group.1,pch=19,bg=0,type='b')
+
+
+legend('topright',inset=c(-.05,-.1),
+       c('Continuous.','Split','Both'),
+       pch=c(21,25,19),
+       xpd=T,
+       pt.bg=c(0,0,1),
+       title='Which significant?',
+      box.col = "black",bg = "white")
+
+```
+
+#### Mean abs distance between .biserial correlation and \(\rho\) results by reliability broken down by indicator significance
+
+
+```{r fig.width=8, fig.height=6, echo=echocode,warning=echocode, results='hide', comment=''}
+rho<-.5
+md<-function(rho,p1,p2) {
+s0<-simdata[simdata$rho==rho,]
+sums<-sum(s0$x)
+ss1<-aggregate(s0$x,list(s0$rel),mean)
+s1<-aggregate(s0,list(s0$rel,s0$sigpe,s0$sigpb),mean)
+s2<-s1[(s1$Group.2==p1 & s1$Group.3==p2),]
+s2$prop<-s2$x/ss1[,2]
+s2
+}
+dat<-md(rho,1,0)
+plot(abs(dat$rpe.cor-rho)~dat$Group.1,ylab='delta',xlab='rel',pch=21,type='b',ylim=c(0,.5))
+
+dat<-md(.5,0,1)
+points(abs(dat$rpb.cor-rho)~dat$Group.1,pch=25,bg=0,type='b')
+dat<-md(.5,1,1)
+points(abs(dat$rpb.cor-rho)~dat$Group.1,pch=19,bg=0,type='b')
+
+legend('topright',inset=c(-.05,-.1),
+       c('Continuous.','Split','Both'),
+       pch=c(21,25,19),
+       xpd=T,
+       pt.bg=c(0,0,1),
+       title='Which significant?',
+      box.col = "black",bg = "white")
+
+
+
+```
+
+Proportions of samples when each of the correlation is significant
+
+
+
+```{r fig.width=8, fig.height=6, echo=echocode,warning=echocode, comment=''}
+
+result<-simdata$sigpe+10*simdata$sigpb
+s1<-aggregate(simdata$x,list(simdata$sigpe,simdata$sigpb,simdata$rho),sum)
+s1
+ss<-sum(simdata$x)
+s1$prop<-s1$x/(ss*2)
+names(s1)<-c("conti.sig","split.sig","rho","freq","prop")
+print(s1)
+cc<-s1[s1[,1]==1,]
+a1<-cc[c(1,2),]
+a2<-cc[c(3,4),]
+a1
+a2
+```
+

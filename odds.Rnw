@@ -1,0 +1,71 @@
+\documentclass{article}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\title{Odds of significance}
+
+\author{Mc}
+\maketitle
+\section*{Introduction}
+In simulations we checked the propability of an indicator (continuous or media-split) as the probability (frequency of runs) of being significant when it should be (latent effect size is greater than zero) over the probability of being significant when it should be not.
+\section*{Setup}
+\subsection*{Model}
+Two continuous latent variables (\(\eta\) and \(\xi\) ) are created with N cases, sharing a correlation equal to \(\rho\). A measure \(x\) of \(\xi\) is created with reliability \(rel\), and then  is dichotomized accordingly to \(p\) \(1-p\) into \(c\). The correlations \( r_pe=r(\eta,x) \)  and \( r_pb=r(\eta,c) \) are computed, their p-value and significance (at .05) is recorded.
+\subsection*{Design}
+\(\rho=(0,.1,.2,.3,.4,.5,.6,.7) \)
+\(rel=(0.3, 0.4 ,0.5, 0.6, 0.7 ,0.8 0.9) \) 
+
+\subsection*{Propabilities as a functions of \(\rho\)}
+
+The computation follows Jamie's computation at the last meeting. The probabilities are the following: \(f0\) is the number of times the indicator was the only one significant (so the other was not), \(f1\) is the probability of being the only one significant for a given \(\rho\). The probability \(P\) is \(P=f1+(f1+f0\))  
+
+
+<<one, results=verbatim, message=FALSE,echo=FALSE,cache=TRUE,cache.vars=TRUE,cache.path=TRUE >>=
+setwd("~/Skinner/Papers/Working/NoSplitting/Significance/newSoft")
+load('simdata3.rda')
+load('experiment3.rda')
+myexper<-info[[1]]
+library(simCity)
+
+result<-simdata$sigpe+10*simdata$sigpb
+s1<-aggregate(simdata$x,list(simdata$sigpe,simdata$sigpb,simdata$rho),sum)
+ss<-sum(simdata$x)
+s1$prop<-s1$x/(ss*2)
+names(s1)<-c("conti.sig","split.sig","rho","freq","prop")
+
+cc<-s1[s1[,1]==1 & s1[,2]==0,]
+bs<-cc[1,4]
+cat('Number of times only Continuos was significant under the null hypothesis')
+bs
+res1<-cc[,4]/(cc[,4]+bs)
+continuous=res1[-1]
+
+cc<-s1[s1[,1]==0 & s1[,2]==1,]
+bs<-cc[1,4]
+cat('Number of times only Categorical was significant under the null hypothesis')
+bs
+cat('Odds of only Continuos  significant under true hypotheses')
+res1<-cc[,4]/(cc[,4]+bs)
+categorical=res1[-1]
+rho<-cc[,3]
+rho<-rho[-1]
+comp=cbind(rho,continuous,categorical)
+as.data.frame(comp)
+
+@
+
+
+\subsubsection*{Figure 1: Odds of being the only significant}
+
+<<two,results=verbatim, fig=TRUE, message=FALSE,echo=FALSE,cache=TRUE,cache.vars=TRUE,cache.path=TRUE >>=
+#as.data.frame(comp)
+cdata<-as.data.frame(comp)
+plot(rho,continuous,data=comp,type="b",ylim=c(.2,1),pch=21,ylab='Probability')
+points(rho,categorical,type="b",pch=17)
+legend(.50,.99,c("Contin.","Catego."),pch=c(21,17),pt.bg=c(0,1),title='Method',bty='n',lwd=c(1,1))
+
+@
+
+
+\end{document}

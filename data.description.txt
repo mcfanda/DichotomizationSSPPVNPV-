@@ -1,0 +1,33 @@
+Data description
+rho=correlation between latent variables (eta and xi)
+rel=relability (correlation) of the measured continuous indicator of xi
+N=sample size of each simulation sample
+
+Variables are:
+"sigpe"=1 indicates that the row represents results for samples where the continuous indicator  (Pearson) correlation was significant. =0 means it was not.
+"sigpb"=1 indicates that the row represents results for samples where the dichotomous indicator  (,biserial) correlation was significant. =0 means it was not.   
+"ncase"=sample size of the simulated samples
+"rho"=latent variable correlation
+"rel"=relability (correlation) of the measured continuous indicator of xi
+"rpe.cor"=mean .biserial correlation
+"p.pe"=mean pvalue of the .biserial correlation
+"sig.pe"=sigpe
+"rpb.cor"=mean Pearson correlation
+ "p.pb"=mean pvalue of the .biserial correlation
+"sig.pb"=sigpb
+"sigpe.1"=ignore
+"sigpb.1"=ignore
+ "x"=number of samples the row represents      
+
+Each row represents the aggregated (mean) results of x (which vary depending on the results) simulations with a specific combination of rho, rel, and N for and a specific outcome of the significance of the correlation between the  continuous indicator, the dichotomized indicator and the latent variable eta. For instance, the first rows shows  
+
+    sigpe sigpb ncase rho rel  rpe.cor ..... x
+1     0     0    20 0.0 0.3 -0.01014501  94
+2     1     0    20 0.0 0.3 -0.20389254  3
+3     0     1    20 0.0 0.3 -0.43027388  1
+4     1     1    20 0.0 0.3 -0.00223209  2
+
+the first row shows the average Pearson correlation (rpe.cor) and other results (see the actual file) for 94 samples where both  the continuous (sigpe) and the dichotomous (sigpb) indicators were not significant, for N=0, rho=0 and rel=.3.
+the second row shows the average Pearson correlation (rpe.cor) and other results (see the actual file) for 3 samples where  the continuous (sigpe) was significant and the dichotomous (sigpb) was not for N=0, rho=0 and rel=.3.
+the third the 1 sampe where the dichotomous was the only significant, the fourth the 2 samples were both were significant. Note that the sum of the four cases is 100, which is the number of samples drawn for  N=0, rho=0 and rel=.3.
+

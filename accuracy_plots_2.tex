@@ -1,0 +1,58 @@
+\documentclass{article}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\title{Accuracy}
+
+\author{Mc}
+\maketitle
+\section*{Introduction}
+In plots we recast the results of simulations in terms of accuracy. We compute the accuracy of each method (continous or categorical), for each level of \(\rho\) (see below) by computing the  the following quantities:
+\begin{itemize}
+  \item false positive (FP)  runs with  with a significant test under a true null hypothesis
+  \item true positive (TP) runs with a significant test under a false null-hypothesis 
+  \item true negative (TN) runs  with a nonsignificant result under a true null-hypothesis
+  \item false negative (FN) runs with a nonsignificant result under a false null-hypothesis
+
+\end{itemize}
+
+Plots to be produced:
+\begin{itemize}
+  \item Sensitivity for all 4 of the decision possibilities (continuous ignoring categorical, categorical ignoring continuous, both, either), with X axis being rho (Figure 1)
+  \item PPV for the 4 decision possibilities, with X axis being rho (Figure 2)
+  \item Bar chart with the specificity for the 4 decision possibilities
+  \item Bar chart with the NPV (aggregated over rho) for the 4 decision possibilities
+\end{itemize}
+
+\section*{Setup}
+\subsection*{Model}
+Two continuous latent variables (\(\eta\) and \(\xi\) ) are created with N cases, sharing a correlation equal to \(\rho\). A measure \(x\) of \(\xi\) is created with reliability \(rel\), and then  is dichotomized accordingly to \(p\) \(1-p\) into \(c\). The correlations \( r_pe=r(\eta,x) \)  and \( r_pb=r(\eta,c) \) are computed, their p-value and significance (at .05) is recorded.
+\subsection*{Design}
+\(\rho=(0,.1,.2,.3,.4,.5,.6,.7) \)
+\(rel=(0.3, 0.4 ,0.5, 0.6, 0.7 ,0.8 0.9) \) 
+
+
+\subsection*{Computation of quantities}
+
+\begin{itemize}
+  \item Continuous false positive (FP\_C)  freq of runs with continuous test p.<.05 and \(\rho\)=0  
+  \item Continuous true positive (TP\_C)  freq of runs with continuous test p.<.05 and \(\rho\) >0
+  \item Continuous true negative (TN\_C) freq of runs  with continuous test p.>=.05 and \(\rho\)=0
+  \item false negative (FN\_C)  freq of runs  with continuous test p.>=.05 and \(\rho\)>0
+  \item PPV is defined as TP/(TP+FP)
+  \item NPV is defined as TN/(TN+FN)
+\end{itemize}
+
+The same quantities are computed for the categorical indicator (*\_S).
+
+
+
+
+
+
+
+
+
+
+

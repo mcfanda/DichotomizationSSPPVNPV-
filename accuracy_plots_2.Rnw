@@ -1,0 +1,189 @@
+\documentclass{article}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\title{Accuracy}
+
+\author{Mc}
+\maketitle
+\section*{Introduction}
+In plots we recast the results of simulations in terms of accuracy. We compute the accuracy of each method (continous or categorical), for each level of \(\rho\) (see below) by computing the  the following quantities:
+\begin{itemize}
+  \item false positive (FP)  runs with  with a significant test under a true null hypothesis
+  \item true positive (TP) runs with a significant test under a false null-hypothesis 
+  \item true negative (TN) runs  with a nonsignificant result under a true null-hypothesis
+  \item false negative (FN) runs with a nonsignificant result under a false null-hypothesis
+
+\end{itemize}
+
+Plots to be produced:
+\begin{itemize}
+  \item Sensitivity for all 4 of the decision possibilities (continuous ignoring categorical, categorical ignoring continuous, both, either), with X axis being rho (Figure 1)
+  \item PPV for the 4 decision possibilities, with X axis being rho (Figure 2)
+  \item Bar chart with the specificity for the 4 decision possibilities
+  \item Bar chart with the NPV (aggregated over rho) for the 4 decision possibilities
+\end{itemize}
+
+\section*{Setup}
+\subsection*{Model}
+Two continuous latent variables (\(\eta\) and \(\xi\) ) are created with N cases, sharing a correlation equal to \(\rho\). A measure \(x\) of \(\xi\) is created with reliability \(rel\), and then  is dichotomized accordingly to \(p\) \(1-p\) into \(c\). The correlations \( r_pe=r(\eta,x) \)  and \( r_pb=r(\eta,c) \) are computed, their p-value and significance (at .05) is recorded.
+\subsection*{Design}
+\(\rho=(0,.1,.2,.3,.4,.5,.6,.7) \)
+\(rel=(0.3, 0.4 ,0.5, 0.6, 0.7 ,0.8 0.9) \) 
+
+
+\subsection*{Computation of quantities}
+
+\begin{itemize}
+  \item Continuous false positive (FP\_C)  freq of runs with continuous test p.<.05 and \(\rho\)=0  
+  \item Continuous true positive (TP\_C)  freq of runs with continuous test p.<.05 and \(\rho\) >0
+  \item Continuous true negative (TN\_C) freq of runs  with continuous test p.>=.05 and \(\rho\)=0
+  \item false negative (FN\_C)  freq of runs  with continuous test p.>=.05 and \(\rho\)>0
+  \item PPV is defined as TP/(TP+FP)
+  \item NPV is defined as TN/(TN+FN)
+\end{itemize}
+
+The same quantities are computed for the categorical indicator (*\_S).
+
+<<cc, results=verbatim, message=FALSE,echo=FALSE,cache=TRUE,cache.vars=TRUE,cache.path=TRUE>>=
+
+#setwd("/home/marcello/TheBox/Dropbox/Dichotomization/Significance & accuracy/newSoft")
+load('simdata3.rda')
+load('experiment3.rda')
+myexper<-info[[1]]
+library(simCity)
+#head(simdata)
+
+# continuous regardless categorical 
+s1<-aggregate(simdata$x,list(simdata$sigpe,simdata$rho),sum)
+names(s1)<-c("conti.sig","rho","freq")
+rho<-unique(s1[,2])[-1]
+FP_C=s1[s1[,1]==1 & s1[,2]==0,][,3]
+TP_C=s1[s1[,1]==1 & s1[,2]>0,][,3]
+TN_C=s1[s1[,1]==0 & s1[,2]==0,][,3]
+FN_C=s1[s1[,1]==0 & s1[,2]>0,][,3]
+SENS_C=TP_C/(TP_C+FN_C)
+SPEC_C=TN_C/(TN_C+FP_C)
+PPV=TP_C/(TP_C+FP_C)
+NPV=TN_C/(TN_C+FN_C)
+
+cdata<-as.data.frame(cbind(rho,SENS_C,SPEC_C,PPV,NPV))
+cat("Accuracy for continuous indicator")
+cdata
+
+# categorical regardless continuous 
+
+s2<-aggregate(simdata$x,list(simdata$sigpb,simdata$rho),sum)
+names(s2)<-c("cat.sig","rho","freq")
+rho<-unique(s2[,2])[-1]
+FP_S=s2[s2[,1]==1 & s2[,2]==0,][,3]
+TP_S=s2[s2[,1]==1 & s2[,2]>0,][,3]
+TN_S=s2[s2[,1]==0 & s2[,2]==0,][,3]
+FN_S=s2[s2[,1]==0 & s2[,2]>0,][,3]
+SENS_S=TP_S/(TP_S+FN_S)
+SPEC_S=TN_S/(TN_S+FP_S)
+PPV=TP_S/(TP_S+FP_S)
+NPV=TN_S/(TN_S+FN_S)
+
+sdata<-as.data.frame(cbind(rho,SENS_S,SPEC_S,PPV,NPV))
+cat("Accuracy for categorical indicator")
+sdata
+
+# both 
+
+s3<-aggregate(simdata$x,list(simdata$sigpe,simdata$sigpb,simdata$rho),sum)
+names(s3)<-c("con.sig","cat.sig","rho","freq")
+rho<-unique(s3[,3])[-1]
+FP_B=s3[s3[,1]==1 & s3[,2]==1 & s3[,3]==0,][,4]
+TP_B=s3[s3[,1]==1 & s3[,2]==1 & s3[,3]>0,][,4]
+TN_B=s3[(s3[,1]==0 | s3[,2]==0) & s3[,3]==0,]
+TN_B=aggregate(TN_B,list(TN_B$rho),sum)[,5]
+FN_B=s3[(s3[,1]==0 | s3[,2]==0) & s3[,3]>0,]
+
+FN_B=aggregate(FN_B,list(FN_B$rho),sum)[,5]
+
+SENS_B=TP_B/(TP_B+FN_B)
+SPEC_B=TN_B/(TN_B+FP_B)
+PPV=TP_B/(TP_B+FP_B)
+NPV=TN_B/(TN_B+FN_B)
+
+bdata<-as.data.frame(cbind(rho,SENS_B,SPEC_B,PPV,NPV))
+cat("Accuracy for BOTH indicators significant")
+bdata
+
+s4<-aggregate(simdata$x,list(simdata$sigpe,simdata$sigpb,simdata$rho),sum)
+names(s4)<-c("con.sig","cat.sig","rho","freq")
+rho<-unique(s4[,3])[-1]
+FP_E=s4[(s4[,1]==1 | s4[,2]==1) & s4[,3]==0,]
+FP_E=aggregate(FP_E,list(FP_E$rho),sum)[,5]
+TP_E=s4[(s4[,1]==1 | s4[,2]==1) & s4[,3]>0,]
+TP_E=aggregate(TP_E,list(TP_E$rho),sum)[,5]
+TN_E=s4[(s4[,1]==0 & s4[,2]==0) & s4[,3]==0,]
+TN_E=aggregate(TN_E,list(TN_E$rho),sum)[,5]
+FN_E=s4[(s4[,1]==0 & s4[,2]==0) & s4[,3]>0,]
+FN_E=aggregate(FN_E,list(FN_E$rho),sum)[,5]
+SENS_E=TP_E/(TP_E+FN_E)
+SPEC_E=TN_E/(TN_E+FP_E)
+PPV=TP_E/(TP_E+FP_E)
+NPV=TN_E/(TN_E+FN_E)
+
+edata<-as.data.frame(cbind(rho,SENS_E,SPEC_E,PPV,NPV))
+cat("Accuracy for EITHER indicators significant")
+edata
+@
+
+\subsubsection*{Figure 1: Sensitivity for all 4 of the decision possibilities (continuous ignoring categorical, categorical ignoring continuous, both, either), with X axis being rho}
+
+<<dd,results=verbatim, fig=TRUE, message=FALSE,echo=FALSE,cache=TRUE,cache.vars=TRUE,cache.path=TRUE >>=
+#as.data.frame(comp)
+
+plot(cdata$rho,cdata$SENS_C,type="b",ylim=c(0,1),pch=21,ylab='Sensitivity',xlab="rho")
+points(sdata$rho,sdata$SENS_S,type="b",pch=17)
+points(bdata$rho,bdata$SENS_B,type="b",pch=25)
+points(edata$rho,edata$SENS_E,type="b",pch=19)
+legend(.10,1,c("Cont.","Categ.","Both","Either"),pch=c(21,17,25,19),pt.bg=c(0,1),title='Method',bty='n',lwd=c(1,1))
+
+@
+
+\subsubsection*{Figure 2: PPV for the 4 decision possibilities, with X axis being rho}
+
+<<ee,results=verbatim, fig=TRUE, message=FALSE,echo=FALSE,cache=TRUE,cache.vars=TRUE,cache.path=TRUE >>=
+#as.data.frame(comp)
+plot(cdata$rho,cdata$PPV,type="b",ylim=c(.5,1),pch=21,ylab='PPV',xlab="rho")
+points(sdata$rho,sdata$PPV,type="b",pch=17)
+points(bdata$rho,bdata$PPV,type="b",pch=25)
+points(edata$rho,edata$PPV,type="b",pch=19)
+legend(.5,.7,c("Cont.","Categ.","Both","Either"),pch=c(21,17,25,19),pt.bg=c(0,1),title='Method',bty='n',lwd=c(1,1))
+
+@
+
+
+\subsubsection*{Figure 3: Bar chart with the specificity for the 4 decision possibilities }
+
+
+
+<<ff,results=verbatim, fig=TRUE, message=FALSE,echo=FALSE,cache=TRUE,cache.vars=TRUE,cache.path=TRUE >>=
+#as.data.frame(comp)
+x<-c(cdata$SPEC_C[1],sdata$SPEC_S[1],bdata$SPEC_B[1],edata$SPEC_E[1])
+b<-barplot(x,ylim = c(.6, 1),xpd=FALSE,ylab="Specificity")
+axis(side=1,at=b,labels=c("Cont.", "Categ.","Both","Either"))
+legend(.6,.4,c("Cont.","Categ.","Both","Either"),pch=c(21,17,25,19),pt.bg=c(0,1),title='Method',bty='n',lwd=c(1,1))
+
+@
+
+\subsubsection*{Figure 4: NPV for the 4 decision possibilities, with X axis being rho}
+
+
+<<gg,results=verbatim, fig=TRUE, message=FALSE,echo=FALSE,cache=TRUE,cache.vars=TRUE,cache.path=TRUE >>=
+plot(cdata$rho,cdata$NPV,type="b",ylim=c(0,1),pch=21,ylab='NPV',xlab="rho")
+points(sdata$rho,sdata$NPV,type="b",pch=17)
+points(bdata$rho,bdata$NPV,type="b",pch=25)
+points(edata$rho,edata$NPV,type="b",pch=19)
+legend(.5,.4,c("Cont.","Categ.","Both","Either"),pch=c(21,17,25,19),pt.bg=c(0,1),title='Method',bty='n',lwd=c(1,1))
+
+@
+
+
+
+\end{document}

@@ -1,0 +1,124 @@
+\documentclass{article}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\title{Probabilities of significance for false null-hypotheses}
+
+\author{Mc}
+\maketitle
+\section*{Introduction}
+In simulations we checked the propability of an indicator (continuous or media-split) as the probability (frequency of runs) of being nonsignificant when it should not be (latent effect size is greater than zero) and then the probability of being significant when it should be .
+\section*{Setup}
+\subsection*{Model}
+Two continuous latent variables (\(\eta\) and \(\xi\) ) are created with N cases, sharing a correlation equal to \(\rho\). A measure \(x\) of \(\xi\) is created with reliability \(rel\), and then  is dichotomized accordingly to \(p\) \(1-p\) into \(c\). The correlations \( r_pe=r(\eta,x) \)  and \( r_pb=r(\eta,c) \) are computed, their p-value and significance (at .05) is recorded.
+\subsection*{Design}
+\(\rho=(0,.1,.2,.3,.4,.5,.6,.7) \)
+\(rel=(0.3, 0.4 ,0.5, 0.6, 0.7 ,0.8 0.9) \) 
+
+
+\subsection*{Propabilities of nonsignificant tests for  \(\rho\)>0}
+
+Here we compute the proportions of runs in which we have a nonsignificant result on either or both of the tests and \(\rho\)>0
+The probabilities are the following: \(f_1\) is the number of times the indicator was the only one nonsignificant (so the other was ) for a given \(\rho\), \(f_t\) is the number of runs for a given \(\rho\). The probability \(P\) is \(P=f_1 / f_t \))  
+
+
+<<cc, results=verbatim, message=FALSE,echo=FALSE,cache=TRUE,cache.vars=TRUE,cache.path=TRUE >>=
+setwd("~/Skinner/Papers/Working/NoSplitting/Significance/newSoft")
+load('simdata3.rda')
+load('experiment3.rda')
+myexper<-info[[1]]
+library(simCity)
+#head(simdata)
+simdata<-simdata[simdata$rho!=0,]
+#head(simdata)
+
+s1<-aggregate(simdata$x,list(simdata$sigpe,simdata$sigpb,simdata$rho),sum)
+names(s1)<-c("conti.sig","split.sig","rho","freq")
+ss<-sum(simdata$x)/length(unique(s1$rho))
+s1$prop<-s1$freq/(ss)
+names(s1)<-c("conti.sig","split.sig","rho","freq","prop")
+cc<-s1[s1[,1]==1 & s1[,2]==0,]
+cat('Probability of only Categorical as nonsignificant')
+categorical=cc[,5]
+categorical
+cc<-s1[s1[,1]==0 & s1[,2]==1,]
+cat('Probability of  only Continuous was nonsignificant')
+continuous=cc[,5]
+cc<-s1[s1[,1]==0 & s1[,2]==0,]
+cat('Probability of  both  nonsignificant')
+both=cc[,5]
+rho<-cc[,3]
+comp=cbind(rho,continuous,categorical,both)
+
+@
+
+
+\subsubsection*{Figure 1: Probabilities of nonsignificant tests under false null-hypothesis}
+
+<<dd,results=verbatim, fig=TRUE, message=FALSE,echo=FALSE,cache=TRUE,cache.vars=TRUE,cache.path=TRUE >>=
+#as.data.frame(comp)
+cdata<-as.data.frame(comp)
+plot(rho,continuous,type="b",ylim=c(0,1),pch=21,ylab='Probability')
+points(rho,categorical,type="b",pch=17)
+points(rho,both,type="b",pch=15)
+
+legend(.50,.99,c("Only Cont.","Only Catego.","Both"),pch=c(21,17,15),pt.bg=c(0,1),title='Method',bty='n',lwd=c(1,1))
+
+@
+
+
+
+\subsection*{Propabilities of being significant as a functions of \(\rho\)}
+
+The probabilities are the following: \(f_1\) is the number of times the indicator was the only one significant (so the other was not) for a given \(\rho\), \(f_t\) is the number of runs for a given \(\rho\). The probability \(P\) is \(P=f_1 / f_t \))  
+
+<<aa, results=verbatim, message=FALSE,echo=FALSE,cache=TRUE,cache.vars=TRUE,cache.path=TRUE >>=
+
+setwd("~/Skinner/Papers/Working/NoSplitting/Significance/newSoft")
+load('simdata3.rda')
+load('experiment3.rda')
+myexper<-info[[1]]
+library(simCity)
+simdata<-simdata[simdata$rho!=0,]
+s1<-aggregate(simdata$x,list(simdata$sigpe,simdata$sigpb,simdata$rho),sum)
+names(s1)<-c("conti.sig","split.sig","rho","freq")
+ss<-sum(s1$freq)/length(unique(s1$rho))
+s1$prop<-s1$freq/(ss)
+
+names(s1)<-c("conti.sig","split.sig","rho","freq","prop")
+cc<-s1[s1[,1]==1 & s1[,2]==0,]
+cat('Probabilites only Continuous was significant under the null hypothesis')
+continuous=cc[,5]
+continuous
+cc<-s1[s1[,1]==0 & s1[,2]==1,]
+cat('Probabilites of only Categorical significant under true hypotheses')
+categorical=cc[,5]
+categorical
+rho<-cc[,3]
+cat('Probability of  both  significant')
+cc<-s1[s1[,1]==1 & s1[,2]==1,]
+both=cc[,5]
+rho<-cc[,3]
+comp=cbind(rho,continuous,categorical,both)
+
+@
+
+
+\subsubsection*{Figure 2: Probability of being significant}
+
+<<bb,results=verbatim, fig=TRUE, message=FALSE,echo=FALSE,cache=TRUE,cache.vars=TRUE,cache.path=TRUE >>=
+#as.data.frame(comp)
+cdata<-as.data.frame(comp)
+plot(rho,continuous,type="b",ylim=c(0,1),pch=21,ylab='Probability')
+points(rho,categorical,type="b",pch=17)
+points(rho,both,type="b",pch=15)
+
+legend(.50,.99,c("Only Cont.","Only Categ.","Both"),pch=c(21,17,15),pt.bg=c(0,1),title='Method',bty='n',lwd=c(1,1))
+
+@
+
+
+
+
+\end{document}
